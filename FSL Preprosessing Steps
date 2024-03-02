@@ -1,0 +1,46 @@
+# Anatomy Functional 
+
+# Reorient (if needed) 
+fslreorient2std data.nii.gz data_reoriented.nii.gz
+
+# Extract Brain: Bet
+bet [file].nii.gz [output_file].nii.gz -B -f 0.2 -g 0
+
+# Check if Cropping is Needed WRT Stimulus Onset: fslroi
+for s in *.nii.gz; do
+  fsl_sub fslroi ${s} ${s:0:${#s}-7}_crop17TRbegin.nii.gz 17 950
+done
+
+Feat (+setFEAT)
+
+MNI Transformation 
+
+# Apply Wrap
+applywarp --ref=/usr/local/fsl/data/standard/MNI152_T1_2mm_brain.nii.gz --in=[path +your Directory.feat]/stats/[anatomyFile.nii.gz] --out=[path+filename.nii.gz] --warp=[path +your Directory.feat]/reg/highres2standard_warp.nii.gz
+
+# Segment Anatomy: Fast 
+fast [path+file.nii.gz]
+
+# Erode CSF Mask
+for s in *.feat; do
+  fslmaths ${path}/${s:0:${#s}-5}/anat_standard_pve_0.nii.gz -thr 1 -mul vent_mask.nii.gz -kernel sphere 2 -ero ${path}/${s:0:${#s}-5}/vent.nii.gz
+  echo ${s:0:${#s}-5}
+done
+
+# Get CSF Timecourse 
+for subjectName in *_r_standard_filt.nii.gz; do
+  fslmeants -i /[path]/${subjectName:0:${#subjectName}-23} -m /[path]/${subjectName:0:${#subjectName}-23}_wm.nii.gz -o /[path]/${subjectName:0:${#subjectName}-23}_filt_wm.txt
+  echo ${subjectName:0:${#subjectName}-23}
+done
+
+# Clean FEAT (CSF and Motion Parameters) 
+
+MNI Transformation (Reps+Zscore) 
+applywarp --ref=/usr/local/fsl/data/standard/MNI152_T1_2mm_brain.nii.gz --in=[path +your Directory.feat]/stats/res4d.nii.gz --out=[path+filename.nii.gz] --warp=[path +your Directory.feat]/reg/highres2standard_warp.nii.gz
+
+# These scripts provide a comprehensive set of fMRI preprosessing steps on FSL. 
+
+
+Feel free to add any additional information, instructions, or usage guidelines specific to your project.
+
+
